@@ -7,6 +7,4 @@ This is the screen that will display tweets at MozCamp Europe 2012. It uses php 
 ![tweet screen w/ img](https://raw.github.com/fuzzyfox/tweet-screen/development/asset/img/tweet-screen-img.png)
 
 ## license
-This Source Code is subject to the terms of the Mozilla Public
-License, v. 2.0. If a copy of the MPL was not distributed with this
-file, You can obtain one at http://mozilla.org/MPL/2.0/.
+This project's source is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at [http://mozilla.org/MPL/2.0/](http://mozilla.org/MPL/2.0/).
