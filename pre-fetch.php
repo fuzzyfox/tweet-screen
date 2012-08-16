@@ -9,10 +9,18 @@
 	 * @author William Duyck <wduyck@gmail.com>
 	 * @version 2012.08.16
 	 */
-
+	
 	class TweetScreen {
 		
+		private	$_api_url		= 'http://api.twitter.com/1/';
+		private $_search_url	= 'http://search.twitter.com/search.json?callback=';
 		
+		/**
+		 * checks the rate limit
+		 */
+		private function check_rate_limit() {
+			
+		}
 		
 	}
 
@@ -24,8 +32,8 @@
 	class Cache {
 		
 		// default values
-		private $_dir = 'cache/';
-		private $_expire = 172800; // 2 days
+		private	$_dir		= 'cache/';
+		private	$_expire	= 172800; // 2 days
 		
 		/**
 		 * sets the cache dir
