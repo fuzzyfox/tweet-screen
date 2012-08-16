@@ -8,8 +8,18 @@ click images full size
 
 [![tweet screen w/ img](https://raw.github.com/fuzzyfox/tweet-screen/development/asset/img/tweet-screen-img.png)](https://raw.github.com/fuzzyfox/tweet-screen/development/asset/img/tweet-screen-img.png)
 
+## dir/file structure
+* assets - for assets to the project :P
+	* img - images
+	* css - stylesheets
+	* js - javascript
+* cache - where processed information from the pre-fetcher is placed
+* promo - promos to be displayed periodically within the tweet stream
+	* should contain html snippets
+
 ## license
-### pre-fetcher (php + js components)
+### tweet-screen
+**Unless otherwise specified:**  
 This project's source is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not distributed with this file, You can obtain one at [http://mozilla.org/MPL/2.0/](http://mozilla.org/MPL/2.0/).
 
 ### Twitter Bootstrap
