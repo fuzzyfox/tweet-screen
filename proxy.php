@@ -3,8 +3,8 @@
 	/*
 	 get tmh oauth tiwtter utils
 	*/
-	require('asset/twitterapi/tmhOAuth');
-	require('asset/twitterapi/tmhUtilities');
+	require('asset/twitterapi/tmhOAuth.php');
+	require('asset/twitterapi/tmhUtilities.php');
 	
 	/**
 	 * Tweet Screen
@@ -40,12 +40,7 @@
 		 * @param	string	hashtag	the hashtag to track
 		 */
 		public function __construct($hastag) {
-			$this->_OAuth = new tmhOAuth(array(
-				'consumer_key' => 'YOUR_CONSUMER_KEY',
-				'consumer_secret' => 'YOUR_CONSUMER_SECRET',
-				'user_token' => 'A_USER_TOKEN',
-				'user_secret' => 'A_USER_SECRET'
-			));
+			$this->_OAuth = new tmhOAuth(array());
 			
 			$this->_params = array(
 				'q' => $hastag,
@@ -70,11 +65,11 @@
 		 * @return	boolean	TRUE on success
 		 */
 		public function request() {
-			$this->_OAuth->request('GET', 'http://search.twitter.com/search.json', $args, FALSE);
+			$this->_OAuth->request('GET', 'http://search.twitter.com/search.json', $this->_params, FALSE);
 			
 			if($this->_OAuth->response['code'] == 200)
 			{
-				$data = json_decode($this->_OAuth->response['response']);
+				$this->_data = json_decode($this->_OAuth->response['response']);
 				return TRUE;
 			}
 			else
@@ -82,6 +77,10 @@
 				header($this->_response_codes[$this->_OAuth->response['code']], TRUE, $this->_OAuth->response['code']);
 				return FALSE;
 			}
+		}
+		
+		public function get_data() {
+			return $this->_data;
 		}
 		
 		/**
@@ -93,7 +92,6 @@
 			$tweet_url = 'https://twitter.com/home?status=' . urlencode($msg);
 			return 'https://chart.googleapis.com/chart?cht=qr&chs=170x170&chl=' . urlencode($tweet_url) . '&chld=H|1';
 		}
-		
 	}
 
 	/**
@@ -202,12 +200,35 @@
 	 ?qr=message+to+tweet
 	 
 	 Promos:
-	 no id: return the total number of snippets in the snippets dir, id's map
-	 to filenames in alphabetical order
+	 no id: return the total number of snippets in the snippets dir (id's map
+	 to filenames in alphabetical order)
 	 ?promo=0
-	 
 	 with id: return the relative url and ID selector of the snippet for the promo
 	 ?promo=3
 	*/
+	
+	parse_str(implode('&', array_slice($argv, 1)), $_GET);
+	
+	// find out if we need to return tweets
+	if($_GET['hashtag'])
+	{
+		// start request process
+		$api = new TweetScreen($_GET['hashtag']);
+		
+		// check if we need to add a since_id to our query to twitter
+		if($_GET['since_id'])
+		{
+			$api->set_param('since_id', $_GET['since_id']);
+		}
+		
+		// request results from twitter
+		$api->request();
+		
+		print_r($api->get_data());
+	}
+	elseif($_GET['qr'])
+	{
+		
+	}
 
 // EOF

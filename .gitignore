@@ -33,3 +33,8 @@ ehthumbs.db
 Icon?
 Thumbs.db
 *.swp
+
+# Project Specific #
+####################
+*.conf.php
+test-data.json
