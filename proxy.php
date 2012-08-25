@@ -209,8 +209,7 @@
 	 ?hashtag=%23mozcamp&since_id=12243
 	 
 	 QR:
-	 should return the url for cached version of the qrcode, and the message that
-	 will be tweeted
+	 should return the cached version of the qrcode
 	 ?qr=message+to+tweet
 	 
 	 Promos:
