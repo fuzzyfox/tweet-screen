@@ -85,6 +85,17 @@
 		}
 		
 		/**
+		 * gets only the needed content from the twitter response
+		 *
+		 * gets the users avatar, any imgs, tweet, timestamp, id, name, username
+		 *
+		 * @param	object	tweet	the tweet to trim down
+		 */
+		private function trim_response($tweet) {
+			
+		}
+		
+		/**
 		 * Generates a qrcode to tweet a specified message out.
 		 *
 		 * @param	string	msg	the message to encode
