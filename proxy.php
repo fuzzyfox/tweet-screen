@@ -79,6 +79,7 @@
 			}
 		}
 		
+		// tmp function
 		public function get_data() {
 			return $this->_data;
 		}
@@ -175,7 +176,18 @@
 				return TRUE;
 			}
 		}
-
+		
+		/**
+		 * deletes specified cache
+		 *
+		 * @param	string	name	name of cache file to remove
+		 */
+		public function delete($name) {
+			if(file_exists($this->_dir . $name))
+			{
+				unlink($this->_dir . $name);
+			}
+		}
 	}
 
 	// process tweets to sperate those w/ images and those w/o
@@ -207,7 +219,11 @@
 	 ?promo=3
 	*/
 	
+	// for commandline-usage
 	parse_str(implode('&', array_slice($argv, 1)), $_GET);
+	
+	// create a cache object
+	$cache = new Cache();
 	
 	// find out if we need to return tweets
 	if($_GET['hashtag'])
@@ -224,7 +240,8 @@
 		// request results from twitter
 		$api->request();
 		
-		print_r($api->get_data());
+		// create a cache with the most recent data in it
+		$cache->save(json_encode($api->get_data()), $_GET['hashtag'] . '_' . $api->get_data()->results[0]->id);
 	}
 	elseif($_GET['qr'])
 	{
