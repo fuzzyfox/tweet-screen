@@ -39,7 +39,7 @@
 		 *
 		 * @param	string	hashtag	the hashtag to track
 		 */
-		public function __construct($hastag) {
+		public function __construct($hastag = '@FuzzyFox') {
 			$this->_OAuth = new tmhOAuth(array());
 			
 			$this->_params = array(
@@ -90,8 +90,8 @@
 		 * @param	string	msg	the message to encode
 		 */
 		public function generate_qr($msg) {
-			$tweet_url = 'https://twitter.com/home?status=' . urlencode($msg);
-			return 'https://chart.googleapis.com/chart?cht=qr&chs=170x170&chl=' . urlencode($tweet_url) . '&chld=H|1';
+			$tweet_url = 'http://twitter.com/home?status=' . urlencode($msg);
+			return 'https://chart.googleapis.com/chart?cht=qr&chs=170x170&chl=' . ($tweet_url) . '&chld=H|0';
 		}
 	}
 
@@ -147,7 +147,7 @@
 		 */
 		public function get($name){
 			// check cache exists and is not expired
-			if($this->exists($this->_dir . $name))
+			if($this->exists($name))
 			{
 				return file_get_contents($this->_dir . $name);
 			}
@@ -175,6 +175,8 @@
 				
 				return TRUE;
 			}
+			
+			return FALSE;
 		}
 		
 		/**
@@ -220,7 +222,7 @@
 	*/
 	
 	// for commandline-usage
-	parse_str(implode('&', array_slice($argv, 1)), $_GET);
+	//parse_str(implode('&', array_slice($argv, 1)), $_GET);
 	
 	// create a cache object
 	$cache = new Cache();
@@ -245,7 +247,19 @@
 	}
 	elseif($_GET['qr'])
 	{
+		$api = new TweetScreen();
 		
+		if(! $cache->get(md5($_GET['qr'])))
+		{
+			$cache->save(file_get_contents($api->generate_qr($_GET['qr'])), md5($_GET['qr']));
+			header('Content-type: image/png');
+			echo $cache->get(md5($_GET['qr']));
+		}
+		else
+		{
+			header('Content-type: image/png');
+			echo $cache->get(md5($_GET['qr']));
+		}
 	}
 
 // EOF
