@@ -38,3 +38,4 @@ Thumbs.db
 ####################
 *.conf.php
 test-data.json
+cache/*
