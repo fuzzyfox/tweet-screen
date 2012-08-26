@@ -132,7 +132,6 @@
 			{
 				// cache the users avatar
 				$this->_cache->save(file_get_contents($raw_tweet->profile_image_url), 'avatar_' . $raw_tweet->from_user . '.' . pathinfo($raw_tweet->profile_image_url, PATHINFO_EXTENSION));
-				
 				// build up new tweet object
 				$tweet = (object)array(
 					'timestamp'	=> strtotime($raw_tweet->created_at),
@@ -355,6 +354,7 @@
 		if($cache->exists('request_' . md5($_SERVER['REQUEST_URI'])))
 		{
 			// it is retrieve it and sent back the same results as last time
+			header('Content-type: text/json');
 			echo $cache->get('request_' . md5($_SERVER['REQUEST_URI']));
 		}
 		else
@@ -369,9 +369,9 @@
 			
 			$api->request();
 			
-			$cache->save(json_encode($api->clean_response()), 'request_' . md5($_SERVER['REQUEST_URI']));
+			$cache->save(json_encode($data), 'request_' . md5($_SERVER['REQUEST_URI']));
 			
-			header('Content-type: text/plain');
+			header('Content-type: text/json');
 			echo $cache->get('request_' . md5($_SERVER['REQUEST_URI']));
 		}
 	}
@@ -381,14 +381,14 @@
 		
 		if(! $cache->exists(md5($_GET['qr'])))
 		{
-			$cache->save(file_get_contents($api->generate_qr($_GET['qr'])), 'qr_' . md5($_GET['qr']));
+			$cache->save(file_get_contents($api->generate_qr($_GET['qr'])), 'qr_' . md5($_GET['qr']) . '.png');
 			header('Content-type: image/png');
-			echo $cache->get(md5($_GET['qr']));
+			echo $cache->get('qr_' . md5($_GET['qr'])  . '.png');
 		}
 		else
 		{
 			header('Content-type: image/png');
-			echo $cache->get('qr_' . md5($_GET['qr']));
+			echo $cache->get('qr_' . md5($_GET['qr'])  . '.png');
 		}
 	}
 	elseif($_GET['promo'])

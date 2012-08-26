@@ -14,7 +14,7 @@ footer {
 }
 
 .container {
-	text-align: center;
+	/*text-align: center;*/
 }
 
 .featured {
@@ -51,7 +51,7 @@ footer {
 	width: 128px;
 	height: 128px;
 	border-radius: 5px 5px 5px 5px;
-	padding: 20px;
+	padding: 0 20px 20px 0;
 }
 
 .time {
