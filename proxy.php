@@ -1,5 +1,21 @@
 <?php
 	
+	date_default_timezone_set('Europe/Warsaw');
+	
+	define('ENVIRONMENT', 'testing');
+	
+	switch(ENVIRONMENT)
+	{
+		case 'testing':
+		case 'production':
+			error_reporting(E_ERROR | E_PARSE);
+		break;
+		case 'development':
+		default:
+			error_reporting(E_ALL & ~E_NOTICE);
+		break;
+	}
+	
 	/*
 	 get tmh oauth tiwtter utils
 	*/
@@ -11,6 +27,10 @@
 	 * 
 	 * Displays tweets, and promo snippets, for use on a large display 
 	 * at conferences.
+	 *
+	 * Currently supports the following photo sharing sites:
+	 * * Twitter
+	 * * Instagram
 	 * 
 	 * @author William Duyck <wduyck@gmail.com>
 	 * @version 2012.08.17
@@ -18,6 +38,7 @@
 	class TweetScreen {
 		
 		private $_OAuth;
+		private $_cache;
 		private $_params = array(array());
 		private $_data = array();
 		private $_response_codes = array(
@@ -37,23 +58,26 @@
 		/**
 		 * sets up the oauth session
 		 *
-		 * @param	string	hashtag	the hashtag to track
+		 * @param	string	$hashtag	the hashtag to track
 		 */
 		public function __construct($hastag = '@FuzzyFox') {
 			$this->_OAuth = new tmhOAuth(array());
+			$this->_cache = new Cache();
 			
 			$this->_params = array(
 				'q' => $hastag,
 				'result_type' => 'recent',
 				'include_entities' => 'true'
 			);
+			
+			date_default_timezone_set('Europe/Warsar');
 		}
 		
 		/**
 		 * set a param for the search
 		 *
-		 * @param	string	key		the name of the param
-		 * @param	string	value	the value of the param
+		 * @param	string	$key	the name of the param
+		 * @param	string	$value	the value of the param
 		 */
 		public function set_param($key, $value) {
 			$this->_params[$key] = $value;
@@ -85,20 +109,101 @@
 		}
 		
 		/**
+		 * gets the id of the newest tweet returned
+		 *
+		 * @return	int	the id of the newest tweet
+		 */
+		private function get_newest_id() {
+			return $this->_data->results[0]->id;
+		}
+		
+		/**
 		 * gets only the needed content from the twitter response
 		 *
 		 * gets the users avatar, any imgs, tweet, timestamp, id, name, username
 		 *
-		 * @param	object	tweet	the tweet to trim down
+		 * @return	assoc_array	An assoc' array of tweet objects
 		 */
-		private function trim_response($tweet) {
+		public function clean_response() {
+			// create new var within scope to place trimmed results
+			$data = array();
 			
+			foreach($this->_data->results as $raw_tweet)
+			{
+				// cache the users avatar
+				$this->_cache->save(file_get_contents($raw_tweet->profile_image_url), 'avatar_' . $raw_tweet->from_user . '.' . pathinfo($raw_tweet->profile_image_url, PATHINFO_EXTENSION));
+				
+				// build up new tweet object
+				$tweet = (object)array(
+					'timestamp'	=> strtotime($raw_tweet->created_at),
+					'id'		=> $raw_tweet->id,
+					'user'		=> $raw_tweet->from_user,
+					'user_name'	=> $raw_tweet->from_user_name,
+					'avatar'	=> $this->_cache->get_dir() . 'avatar_' . $raw_tweet->from_user . '.' . pathinfo($raw_tweet->profile_image_url, PATHINFO_EXTENSION),
+					'text'		=> $this->correct_tweet_urls($raw_tweet),
+					'photo'		=> $this->get_tweet_photo($raw_tweet)
+				);
+				
+				$data[] = $tweet;
+			}
+			
+			$this->_data = $data;
+			return $data;
+		}
+		
+		/**
+		 * corrects the urls in the tweet
+		 *
+		 * corrects the urls in the tweet so they look more like what the user
+		 * tweeted and less like twitter has shortened them all (which they have)
+		 * and converts them into html links
+		 *
+		 * @param	object	$tweet	the tweet to correct
+		 * @return	string	the tweet with the corrected urls
+		 */
+		private function correct_tweet_urls($tweet) {
+			if(isset($tweet->entities->urls))
+			{
+				foreach($tweet->entities->urls as $url)
+				{
+					$tweet->text = str_replace($url->url, '<a href="' . $url->expanded_url . '">' . $url->display_url . '</a>', $tweet->text);
+				}
+			}
+			return $tweet->text;
+		}
+		
+		/**
+		 * gets the photo from a tweet if one exists
+		 *
+		 * @param	object	$tweet	the tweet to look for photos in
+		 */
+		private function get_tweet_photo($tweet) {
+			if(isset($tweet->entities->media))
+			{
+				$this->_cache->save(file_get_contents($tweet->entities->media[0]->media_url), 'photo_' . $tweet->id . '.' . pathinfo($tweet->entities->media[0]->media_url, PATHINFO_EXTENSION));
+				return $this->_cache->get_dir() . 'photo_' . $tweet->id . '.' . pathinfo($tweet->entities->media[0]->media_url, PATHINFO_EXTENSION);
+			}
+			elseif(isset($tweet->entities->urls))
+			{
+				foreach($tweet->entities->urls as $url)
+				{
+					if(preg_match('/http:\/\/instagr\.am\/p\//i', $url->expanded_url))
+					{
+						$this->_cache->save(file_get_contents($url->expanded_url . '/media/?size=l'), 'photo_' . $tweet->id . '.jpg');
+						return $this->_cache->get_dir() . 'photo_' . $tweet->id . '.jpg';
+					}
+				}
+			}
+			else
+			{
+				return FALSE;
+			}
 		}
 		
 		/**
 		 * Generates a qrcode to tweet a specified message out.
 		 *
-		 * @param	string	msg	the message to encode
+		 * @param	string	$msg	the message to encode
 		 */
 		public function generate_qr($msg) {
 			$tweet_url = 'http://twitter.com/home?status=' . urlencode($msg);
@@ -123,16 +228,25 @@
 		/**
 		 * sets the cache dir
 		 *
-		 * @param string	dir	location of the cache dir w/ trailing slash
+		 * @param string	$dir	location of the cache dir w/ trailing slash
 		 */
 		public function set_dir($dir) {
 			$this->_dir = $dir;
 		}
 		
 		/**
+		 * gets the cache dir
+		 *
+		 * @return	string	the dir where cache is stored
+		 */
+		public function get_dir() {
+			return $this->_dir;
+		}
+		
+		/**
 		 * sets the expire duration of cache files
 		 *
-		 * @param	int	expire	how long to keep cache for
+		 * @param	int	$expire	how long to keep cache for
 		 */
 		public function set_expire($expire) {
 			$this->_expire = $expire;
@@ -141,8 +255,8 @@
 		/**
 		 * saves string to cache
 		 *
-		 * @param	string	str		what to store
-		 * @param	string	name 	name of cache file to store in
+		 * @param	string	$str	what to store
+		 * @param	string	$name 	name of cache file to store in
 		 * @return	boolean	TRUE on success
 		 */
 		public function save($str, $name){
@@ -153,23 +267,17 @@
 		/**
 		 * gets string from cache
 		 *
-		 * @param	string	name	name of cache file
+		 * @param	string	$name	name of cache file
 		 * @return	mixed	FALSE on fail, string of cache content on success
 		 */
 		public function get($name){
-			// check cache exists and is not expired
-			if($this->exists($name))
-			{
-				return file_get_contents($this->_dir . $name);
-			}
-			
-			return FALSE;
+			return file_get_contents($this->_dir . $name);
 		}
 		
 		/**
 		 * checks if a cache exists and hasn't expired
 		 *
-		 * @param	string	name	name of cache file
+		 * @param	string	$name	name of cache file
 		 * @return	boolean	TRUE if cache exists
 		 */
 		public function exists($name){
@@ -193,7 +301,7 @@
 		/**
 		 * deletes specified cache
 		 *
-		 * @param	string	name	name of cache file to remove
+		 * @param	string	$name	name of cache file to remove
 		 */
 		public function delete($name) {
 			if(file_exists($this->_dir . $name))
@@ -232,7 +340,10 @@
 	*/
 	
 	// for commandline-usage
-	//parse_str(implode('&', array_slice($argv, 1)), $_GET);
+	if(php_sapi_name() == 'cli')
+	{
+		parse_str(implode('&', array_slice($argv, 1)), $_GET);
+	}
 	
 	// create a cache object
 	$cache = new Cache();
@@ -240,36 +351,49 @@
 	// find out if we need to return tweets
 	if($_GET['hashtag'])
 	{
-		// start request process
-		$api = new TweetScreen($_GET['hashtag']);
-		
-		// check if we need to add a since_id to our query to twitter
-		if($_GET['since_id'])
+		// check request not saved somewhere
+		if($cache->exists('request_' . md5($_SERVER['REQUEST_URI'])))
 		{
-			$api->set_param('since_id', $_GET['since_id']);
+			// it is retrieve it and sent back the same results as last time
+			echo $cache->get('request_' . md5($_SERVER['REQUEST_URI']));
 		}
-		
-		// request results from twitter
-		$api->request();
-		
-		// create a cache with the most recent data in it
-		$cache->save(json_encode($api->get_data()), $_GET['hashtag'] . '_' . $api->get_data()->results[0]->id);
+		else
+		{
+			// nope... make a new request
+			$api = new TweetScreen($_GET['hashtag']);
+			
+			if($_GET['since_id'])
+			{
+				$api->set_param('since_id', $_GET['since_id']);
+			}
+			
+			$api->request();
+			
+			$cache->save(json_encode($api->clean_response()), 'request_' . md5($_SERVER['REQUEST_URI']));
+			
+			header('Content-type: text/plain');
+			echo $cache->get('request_' . md5($_SERVER['REQUEST_URI']));
+		}
 	}
 	elseif($_GET['qr'])
 	{
 		$api = new TweetScreen();
 		
-		if(! $cache->get(md5($_GET['qr'])))
+		if(! $cache->exists(md5($_GET['qr'])))
 		{
-			$cache->save(file_get_contents($api->generate_qr($_GET['qr'])), md5($_GET['qr']));
+			$cache->save(file_get_contents($api->generate_qr($_GET['qr'])), 'qr_' . md5($_GET['qr']));
 			header('Content-type: image/png');
 			echo $cache->get(md5($_GET['qr']));
 		}
 		else
 		{
 			header('Content-type: image/png');
-			echo $cache->get(md5($_GET['qr']));
+			echo $cache->get('qr_' . md5($_GET['qr']));
 		}
+	}
+	elseif($_GET['promo'])
+	{
+		
 	}
 
 // EOF
