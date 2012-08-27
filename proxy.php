@@ -2,7 +2,7 @@
 	
 	date_default_timezone_set('Europe/Warsaw');
 	
-	define('ENVIRONMENT', 'testing');
+	define('ENVIRONMENT', 'Development');
 	
 	switch(ENVIRONMENT)
 	{
@@ -12,7 +12,7 @@
 		break;
 		case 'development':
 		default:
-			error_reporting(E_ALL & ~E_NOTICE);
+			error_reporting(E_ALL);
 		break;
 	}
 	
@@ -69,8 +69,6 @@
 				'result_type' => 'recent',
 				'include_entities' => 'true'
 			);
-			
-			date_default_timezone_set('Europe/Warsar');
 		}
 		
 		/**
@@ -131,7 +129,7 @@
 			foreach($this->_data->results as $raw_tweet)
 			{
 				// cache the users avatar
-				$this->_cache->save(file_get_contents($raw_tweet->profile_image_url), 'avatar_' . $raw_tweet->from_user . '.' . pathinfo($raw_tweet->profile_image_url, PATHINFO_EXTENSION));
+				$this->_cache->save(file_get_contents(str_replace('_normal.', '_reasonably_small.', $raw_tweet->profile_image_url)), 'avatar_' . $raw_tweet->from_user . '.' . pathinfo($raw_tweet->profile_image_url, PATHINFO_EXTENSION));
 				// build up new tweet object
 				$tweet = (object)array(
 					'timestamp'	=> strtotime($raw_tweet->created_at),
@@ -348,7 +346,7 @@
 	$cache = new Cache();
 	
 	// find out if we need to return tweets
-	if($_GET['hashtag'])
+	if(isset($_GET['hashtag']))
 	{
 		// check request not saved somewhere
 		if($cache->exists('request_' . md5($_SERVER['REQUEST_URI'])))
@@ -362,12 +360,14 @@
 			// nope... make a new request
 			$api = new TweetScreen($_GET['hashtag']);
 			
-			if($_GET['since_id'])
+			if(isset($_GET['since_id']))
 			{
 				$api->set_param('since_id', $_GET['since_id']);
 			}
 			
 			$api->request();
+			
+			$data = $api->clean_response();
 			
 			$cache->save(json_encode($data), 'request_' . md5($_SERVER['REQUEST_URI']));
 			
