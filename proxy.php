@@ -132,7 +132,7 @@
 				$this->_cache->save(file_get_contents(str_replace('_normal.', '_reasonably_small.', $raw_tweet->profile_image_url)), 'avatar_' . $raw_tweet->from_user . '.' . pathinfo($raw_tweet->profile_image_url, PATHINFO_EXTENSION));
 				// build up new tweet object
 				$tweet = (object)array(
-					'timestamp'	=> strtotime($raw_tweet->created_at),
+					'timestamp'	=> $raw_tweet->created_at,
 					'id'		=> $raw_tweet->id,
 					'user'		=> $raw_tweet->from_user,
 					'user_name'	=> $raw_tweet->from_user_name,
@@ -143,7 +143,7 @@
 				
 				$data[] = $tweet;
 			}
-			
+			$data = array_reverse($data);
 			$this->_data = $data;
 			return $data;
 		}
@@ -220,7 +220,7 @@
 		
 		// default values
 		private	$_dir		= 'cache/';
-		private	$_expire	= 172800; // 2 days
+		private	$_expire	= 3600; // 2 days
 		
 		/**
 		 * sets the cache dir
@@ -369,10 +369,23 @@
 			
 			$data = $api->clean_response();
 			
-			$cache->save(json_encode($data), 'request_' . md5($_SERVER['REQUEST_URI']));
+			if(count($data) > 0)
+			{
+				$cache->save(json_encode($data), 'request_' . md5($_SERVER['REQUEST_URI']));
 			
-			header('Content-type: text/json');
-			echo $cache->get('request_' . md5($_SERVER['REQUEST_URI']));
+				header('Content-type: text/json');
+				echo $cache->get('request_' . md5($_SERVER['REQUEST_URI']));
+			}
+			else
+			{
+				header('Content-type: text/json');
+				header("Expires: Tue, 03 Jul 2001 06:00:00 GMT");
+			    header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+			    header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+			    header("Cache-Control: post-check=0, pre-check=0", false);
+			    header("Pragma: no-cache");
+				echo json_encode($data);
+			}
 		}
 	}
 	elseif($_GET['qr'])
