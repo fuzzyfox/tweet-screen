@@ -203,7 +203,7 @@
 		 * @param	string	$msg	the message to encode
 		 */
 		public function generate_qr($msg) {
-			$tweet_url = 'http://twitter.com/home?status=' . urlencode($msg);
+			$tweet_url = 'http://twitter.com/intent/tweet?text=' . urlencode($msg);
 			return 'https://chart.googleapis.com/chart?cht=qr&chs=170x170&chl=' . ($tweet_url) . '&chld=H|0';
 		}
 	}

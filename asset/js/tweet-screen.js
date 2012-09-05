@@ -39,14 +39,14 @@ var process_tweets = function(tweets) {
 		}
 	} else {
 		delete window.since_id;
-		window.fetch_tweets('mozcamp');
+		window.fetch_tweets();
 	}
 },
 fetch_tweets = function(hashtag){
 	if(typeof window.since_id != 'number') {
-		$.getJSON('proxy.php?hashtag=%23'+hashtag, process_tweets);
+		$.getJSON('proxy.php?hashtag=%23'+window.hashtag, process_tweets);
 	} else {
-		$.getJSON('proxy.php?hashtag=%23'+hashtag+'&since_id=' + window.since_id, process_tweets);
+		$.getJSON('proxy.php?hashtag=%23'+window.hashtag+'&since_id=' + window.since_id, process_tweets);
 	}
 },
 hide_tweets = function() {
@@ -68,8 +68,9 @@ show_plain_tweets = function() {
 show_photo_tweets = function() {
 	$tweet = $('.tweet.has-photo:not(.visible):first');
 	
+	clearInterval(show_plain_tweets_timer);
+	
 	if($tweet.size() === 1) {
-		clearInterval(show_plain_tweets_timer);
 		$tweet.delay(1000).addClass('visible').fadeToggle(1000, function(){
 			show_plain_tweets_timer = setInterval(function(){
 				window.hide_tweets();
@@ -87,22 +88,41 @@ show_photo_tweets = function() {
 update_relative_times = function(){
 	$tweet = $('.tweet-card .relative-timestamp');
 	$tweet.html(new Date($tweet.attr('rel')).toRelativeTime());
+},
+rotate_tweetout = function(tweetouts) {
+	
 };
 
 $(function(){
-	window.fetch_tweets('mozcamp');
-	autopoll = setInterval(function(){
-		window.fetch_tweets('mozcamp');
-	}, 24000);
-	
-	show_plain_tweets_timer = setInterval(function(){
-		window.hide_tweets();
-		window.show_plain_tweets();
-		window.update_relative_times();
-	}, 10000);
-	
-	show_photo_tweets_timer = setInterval(function(){
-		window.hide_tweets();
-		window.show_photo_tweets();
-	}, 29999)
+		config = {
+			'hashtag' : 'mozcamp',
+			'tweetouts' : [
+				'tweet out number one',
+				'tweet out number two',
+				'tweet out etc...'
+			]
+		}
+		
+		
+		
+		window.hashtag = config.hashtag;
+		window.fetch_tweets();
+		autopoll = setInterval(function(){
+			window.fetch_tweets();
+		}, 24000);
+		
+		show_plain_tweets_timer = setInterval(function(){
+			window.hide_tweets();
+			window.show_plain_tweets();
+			window.update_relative_times();
+		}, 10000);
+		
+		show_photo_tweets_timer = setInterval(function(){
+			window.hide_tweets();
+			window.show_photo_tweets();
+		}, 29999);
+		
+		rotate_tweetout_timer = setInterval(rotate_tweetout, 30000);
+		
+		$('.hashtag').html(config.hashtag);
 });
