@@ -1,6 +1,7 @@
 body {
 	background: url("../img/bg-sand.png") repeat-x scroll 0 0 rgb(245, 241, 232);
 	border-top: 2px solid #fff;
+	overflow: hidden;
 }
 
 footer {
@@ -10,11 +11,6 @@ footer {
 	bottom: 0;
 	width: 100%;
 	font-size: 14px;
-}
-
-.container {
-	/*text-align:  center;
-	*/
 }
 
 .featured {

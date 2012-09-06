@@ -88,9 +88,6 @@ show_photo_tweets = function() {
 update_relative_times = function(){
 	$tweet = $('.tweet-card .relative-timestamp');
 	$tweet.html(new Date($tweet.attr('rel')).toRelativeTime());
-},
-rotate_tweetout = function(tweetouts) {
-	
 };
 
 $(function(){
@@ -106,6 +103,7 @@ $(function(){
 		
 		
 		window.hashtag = config.hashtag;
+		window.tweetouts = config.tweetouts;
 		window.fetch_tweets();
 		autopoll = setInterval(function(){
 			window.fetch_tweets();
@@ -125,7 +123,17 @@ $(function(){
 			window.show_photo_tweets();
 		}, 29999);
 		
-		rotate_tweetout_timer = setInterval(rotate_tweetout, 30000);
+		// tweetouts
+		$('.promo p').html(window.tweetouts[0]);
+		$('.qr img').attr('src', 'proxy.php?qr=' + encodeURIComponent(window.tweetouts[0]));
+		window.tweetouts.push(window.tweetouts[0]);
+		window.tweetouts.shift();
+		setInterval(function(){
+			$('.promo p').html(window.tweetouts[0]);
+			$('.qr img').attr('src', 'proxy.php?qr=' + encodeURIComponent(window.tweetouts[0]));
+			window.tweetouts.push(window.tweetouts[0]);
+			window.tweetouts.shift();
+		}, 60000);
 		
 		$('.hashtag').html(config.hashtag);
 		$('.qr img:first')[0].style.bottom = -($('.promo').height()) + 'px';
