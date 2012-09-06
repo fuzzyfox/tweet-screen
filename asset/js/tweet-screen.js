@@ -109,6 +109,9 @@ $(function(){
 		window.fetch_tweets();
 		autopoll = setInterval(function(){
 			window.fetch_tweets();
+			
+			// this is here so it does sort of act responsively
+			$('.qr img:first')[0].style.bottom = -($('.promo').height()) + 'px';
 		}, 24000);
 		
 		show_plain_tweets_timer = setInterval(function(){
@@ -125,4 +128,5 @@ $(function(){
 		rotate_tweetout_timer = setInterval(rotate_tweetout, 30000);
 		
 		$('.hashtag').html(config.hashtag);
+		$('.qr img:first')[0].style.bottom = -($('.promo').height()) + 'px';
 });

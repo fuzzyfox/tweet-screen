@@ -13,7 +13,8 @@ footer {
 }
 
 .container {
-	/*text-align: center;*/
+	/*text-align:  center;
+	*/
 }
 
 .featured {
@@ -21,7 +22,6 @@ footer {
 	text-align: left;
 	width: 90%;
 	padding: 0 5%;
-
 }
 
 .tweet-card {
@@ -75,6 +75,27 @@ footer {
 	background-color: #ffffff;
 }
 
+#tweets {
+	margin-top: 100px;
+}
+
+.tweet.has-photo {
+	margin-top: -100px;
+}
+
 .promo h4 {
 	font-size: 18px;
+}
+
+.qr {
+	position: relative;
+	display: block;
+}
+
+.qr img {
+	position: absolute;
+	bottom: 0;
+	display: block;
+	width: inherit;
+	margin-bottom: -20px;
 }
