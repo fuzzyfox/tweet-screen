@@ -204,7 +204,7 @@
 		 */
 		public function generate_qr($msg) {
 			$tweet_url = 'http://twitter.com/intent/tweet?text=' . urlencode($msg);
-			return 'https://chart.googleapis.com/chart?cht=qr&chs=170x170&chl=' . ($tweet_url) . '&chld=H|0';
+			return 'https://chart.googleapis.com/chart?cht=qr&chs=170x170&chl=' . ($tweet_url) . '&chld=L|0';
 		}
 	}
 
@@ -220,7 +220,7 @@
 		
 		// default values
 		private	$_dir		= 'cache/';
-		private	$_expire	= 3600; // 2 days
+		private	$_expire	= 60; // 2 days
 		
 		/**
 		 * sets the cache dir
@@ -329,11 +329,8 @@
 	 ?qr=message+to+tweet
 	 
 	 Promos:
-	 no id: return the total number of snippets in the snippets dir (id's map
-	 to filenames in alphabetical order)
-	 ?promo=0
-	 with id: return the relative url and ID selector of the snippet for the promo
-	 ?promo=3
+	 returns a json array with all the file locations for the promos
+	 ?promo=true
 	*/
 	
 	// for commandline-usage
@@ -388,7 +385,7 @@
 			}
 		}
 	}
-	elseif($_GET['qr'])
+	elseif(isset($_GET['qr']))
 	{
 		$api = new TweetScreen();
 		
@@ -404,9 +401,22 @@
 			echo $cache->get('qr_' . md5($_GET['qr'])  . '.png');
 		}
 	}
-	elseif($_GET['promo'])
+	elseif(isset($_GET['promo']))
 	{
+		$promos = array();
+		if($handle = opendir('promo/'))
+		{
+			while(FALSE !== ($entry = readdir($handle)))
+			{
+				if($entry != '.' && $entry != '..')
+				{
+					$promos[] = 'promo/' . $entry;
+				}
+			}
+			closedir($handle);
+		}
 		
+		echo json_encode($promos);
 	}
 
 // EOF

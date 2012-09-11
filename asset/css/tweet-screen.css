@@ -10,7 +10,11 @@ footer {
 	position: absolute;
 	bottom: 0;
 	width: 100%;
-	font-size: 14px;
+	font-size: 25px;
+	line-height: 1;
+}
+footer h4 {
+	margin-bottom: 10px;
 }
 
 .featured {
@@ -56,6 +60,7 @@ footer {
 
 .tweet {
 	display: none;
+	font-size: larger;
 }
 
 .tweet-text {
@@ -80,7 +85,7 @@ footer {
 }
 
 .promo h4 {
-	font-size: 18px;
+	font-size: larger;
 }
 
 .qr {
