@@ -1,3 +1,5 @@
+**This project is not maintained and has been replaced by [BigScreenTweets](https://github.com/fuzzyfox/BigScreenTweets).**
+
 # tweet-screen
 This is the screen that will display tweets at MozCamp Europe 2012. It uses php to prefetch tweets and images, process into displays, cache them, then display them on a timer.
 
